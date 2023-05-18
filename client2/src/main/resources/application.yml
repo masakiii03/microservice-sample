@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: client-2
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/, http://localhost:8762/eureka/
+    healthCheck:
+      enabled: true
+
+server:
+  servlet:
+    context-path: /client2
+  port: 8002
+  # port: 8022
