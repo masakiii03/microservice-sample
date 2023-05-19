@@ -29,7 +29,5 @@ resilience4j:
         timeoutDuration: 5s # タイムアウトの時間
         
 server:
-  servlet:
-    context-path: /client3
   port: 8003
   # port: 8033

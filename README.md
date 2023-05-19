@@ -52,3 +52,7 @@
   - `client-4`呼び出し処理でサーキットブレーカーを実装
 - client-4
   - アクセス元である`client-3`のport番号と自身のport番号を表示するメソッドを実装
+
+## アクセス方法
+- http://localhost:8080/client-1/sample/0
+- http://localhost:8080/client-3/sample/0

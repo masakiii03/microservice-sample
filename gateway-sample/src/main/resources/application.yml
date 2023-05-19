@@ -3,15 +3,10 @@ spring:
     name: gateway-service
   cloud:
     gateway:
-      routes:
-        - id: client1
-          uri: lb://client-1
-          predicates:
-            - Path=/client1/**
-        - id: client3
-          uri: lb://client-3
-          predicates:
-            - Path=/client3/**
+      discovery:
+        locator:
+          enabled: true
+          lower-case-serviceid: true
 
 eureka:
   client:
