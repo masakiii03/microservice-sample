@@ -1,33 +1,9 @@
 spring:
   application:
     name: client-1
-  cloud:
-    openfeign:
-      circuitbreaker:
-        enabled: true
+  config:
+    import: optional:configserver:http://localhost:8888
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/, http://localhost:8762/eureka/
-    healthcheck:
-      enabled: true
-
-resilience4j:
-  circuitbreaker:
-    instances:
-      # default: # デフォルトで一律設定も可能
-      #   slidingWindowSize: 10
-      cbSample: # CircuitBreakerのid
-        slidingWindowSize: 5 # CLOSE時の外部呼出し数を保存する個数
-        failureRateThreshold: 30 # 失敗率のしきい値(%)。上回った場合に CLOSE -> OPEN
-        waitDurationInOpenState: 15000 # OPENからHALF_OPENに遷移する前の維持時間(ms)
-        minimumNumberOfCalls: 1 # 失敗率を計算する最小実行回数
-  timelimiter:
-    configs:
-      default:
-        timeoutDuration: 5s # タイムアウトの時間
-        
 server:
   port: 8001
   # port: 8011
