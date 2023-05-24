@@ -35,6 +35,15 @@
 - パス、ヘッダー、HTTPメソッドなどでルーティングを制御可能
 - ルーティングのweightの設定も可能
 
+### Spring Cloud Config
+- 設定ファイルをGitリポジトリなどに外出しして、configサーバーで一括管理する仕組み
+- configのクライアントは`/actuator/refresh`にPOSTアクセスをするとconfigサーバーの設定値を読み込み直すため、設定ファイルを書き換える度にサービスを再起動する必要がなくなる
+- `@ConfigurationProperties`
+  - refreshで設定値がリロードされる
+- `@Value`
+  - refreshをしても設定値はリロードされない
+  - クラスに`@RefreshScope`アノテーションを付与するとrefresh時に設定値がリロードされる
+
 ## システム構成
 ![microservice](./microservice.drawio.svg)
 
@@ -52,7 +61,25 @@
   - `client-4`呼び出し処理でサーキットブレーカーを実装
 - client-4
   - アクセス元である`client-3`のport番号と自身のport番号を表示するメソッドを実装
+- config-server
+  - 設定ファイルを管理するconfigサーバー
+- [config-repo](https://github.com/masakiii03/config-repo)(別リポジトリ)
+  - 設定ファイルの一元管理
 
 ## アクセス方法
+### 通常系
 - http://localhost:8080/client-1/sample/0
 - http://localhost:8080/client-3/sample/0
+
+### 異常系(サーキットブレーカーのタイムアウト発生)
+- http://localhost:8080/client-1/sample/6
+- http://localhost:8080/client-3/sample/6
+
+### config設定の確認
+- http://localhost:8888/{サービス名}/default
+
+### config設定のrefresh
+- http://localhost:{対象サービスのポート番号}/actuator/refresh (POST)
+
+### config設定のrefreshの動作確認
+- curl http://localhost:8080/value
