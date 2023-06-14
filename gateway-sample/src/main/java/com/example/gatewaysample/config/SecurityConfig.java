@@ -22,19 +22,24 @@ public class SecurityConfig {
     SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http)
             throws Exception {
 
-        http.addFilterAfter(this::validateCustomHeader, SecurityWebFiltersOrder.AUTHENTICATION).csrf().disable()
+        http.csrf().disable()
                 .authorizeExchange()
-                .pathMatchers("/**").permitAll();
+                .pathMatchers("/**").permitAll().and()
+                .addFilterAfter(this::validateCustomHeader, SecurityWebFiltersOrder.AUTHENTICATION);
 
         return http.build();
 
     }
 
     private Mono<Void> validateCustomHeader(ServerWebExchange exchange, WebFilterChain chain) {
+        String path = exchange.getRequest().getPath().toString();
         String method = exchange.getRequest().getMethod().toString();
         String token = exchange.getRequest().getHeaders().getFirst("Authorization");
 
-        if (token != null && token.contains("null") && !(method.equals("OPTIONS"))) {
+        // "/authentication-service/jwt"は認証前のため許可
+        // methodが"OPTIONS"の場合は許可(カスタムヘッダーが含まれないため)
+        if (!(path.equals("/authentication-service/jwt")) && token != null && token.contains("null")
+                && !(method.equals("OPTIONS"))) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
