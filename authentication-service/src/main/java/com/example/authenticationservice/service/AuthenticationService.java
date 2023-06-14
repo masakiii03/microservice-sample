@@ -1,4 +1,4 @@
-package com.example.authenticationservice;
+package com.example.authenticationservice.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +29,7 @@ public class AuthenticationService {
 
         String res = restTemplate.postForObject(url, null, String.class);
 
-        if (res.contains("access_token")) {
+        if (res != null && res.contains("access_token")) {
             String jwt = jwtBuilder.build();
             return jwt;
         }
