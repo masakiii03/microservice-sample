@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -16,9 +17,10 @@ public interface SampleFeignClient {
 
     @GetMapping("/client4/get_port/{second}")
     @CircuitBreaker(name = "cbSample", fallbackMethod = "getFallback")
-    public String getClient4Port(@RequestParam("client3Port") String client3Port, @PathVariable("second") int second);
+    public String getClient4Port(@RequestHeader("Authorization") String authorization,
+            @RequestParam("client3Port") String client3Port, @PathVariable("second") int second);
 
-    default String getFallback(String client3Port, int second, Exception e) {
+    default String getFallback(String authorization, String client3Port, int second, Exception e) {
         logger.info(e.getMessage());
         return "error from fallback (port: " + client3Port + ")";
     }

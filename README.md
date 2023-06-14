@@ -68,12 +68,12 @@
 
 ## アクセス方法
 ### 通常系
-- http://localhost:8080/client-1/sample/0
-- http://localhost:8080/client-3/sample/0
+- http://localhost:8080/sample/0
+- http://localhost:8080/sample/0
 
 ### 異常系(サーキットブレーカーのタイムアウト発生)
-- http://localhost:8080/client-1/sample/6
-- http://localhost:8080/client-3/sample/6
+- http://localhost:8080/sample/6
+- http://localhost:8080/sample/6
 
 ### config設定の確認
 - http://localhost:8888/{サービス名}/default
@@ -82,4 +82,4 @@
 - http://localhost:{対象サービスのポート番号}/actuator/refresh (POST)
 
 ### config設定のrefreshの動作確認
-- curl http://localhost:8080/value
+- http://localhost:8080/value

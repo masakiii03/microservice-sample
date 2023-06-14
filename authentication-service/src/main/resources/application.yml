@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: authentication-service
+  config:
+    import: optional:configserver:http://localhost:8888
+
+github-oauth:
+  client-id: ${CLIENT_ID}
+  client-secret: ${CLIENT_SECRET}
+  user-id: ${USER_ID}
