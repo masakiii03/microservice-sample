@@ -38,12 +38,12 @@ public class SecurityConfig {
 
         // "/authentication-service/jwt"は認証前のため許可
         // methodが"OPTIONS"の場合は許可(カスタムヘッダーが含まれないため)
-        if (!(path.equals("/authentication-service/jwt")) && token != null && token.contains("null")
-                && !(method.equals("OPTIONS"))) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+        if ((path.equals("/authentication-service/jwt") || method.equals("OPTIONS"))
+                || (token != null && !(token.contains("null")))) {
+            return chain.filter(exchange);
         }
-        return chain.filter(exchange);
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        return exchange.getResponse().setComplete();
     }
 
 }
