@@ -37,8 +37,10 @@ public class SecurityConfig {
         String token = exchange.getRequest().getHeaders().getFirst("Authorization");
 
         // "/authentication-service/jwt"は認証前のため許可
+        // "*/actuator/refresh"はconfigのrefresh用に許可
         // methodが"OPTIONS"の場合は許可(カスタムヘッダーが含まれないため)
-        if ((path.equals("/authentication-service/jwt") || method.equals("OPTIONS"))
+        if ((path.equals("/authentication-service/jwt") || path.endsWith("/actuator/refresh")
+                || method.equals("OPTIONS"))
                 || (token != null && !(token.contains("null")))) {
             return chain.filter(exchange);
         }

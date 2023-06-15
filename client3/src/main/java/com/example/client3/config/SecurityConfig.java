@@ -31,7 +31,8 @@ public class SecurityConfig {
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
 
-        http.cors().and().authorizeHttpRequests()
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/actuator/refresh")).cors().and().authorizeHttpRequests()
+                .requestMatchers("/actuator/refresh").permitAll()
                 .requestMatchers("/**").access(new AuthorizationManager<RequestAuthorizationContext>() {
                     @Override
                     public AuthorizationDecision check(Supplier<Authentication> authorization,
