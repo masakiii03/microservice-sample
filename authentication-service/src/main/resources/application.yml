@@ -8,3 +8,4 @@ github-oauth:
   client-id: ${CLIENT_ID}
   client-secret: ${CLIENT_SECRET}
   user-id: ${USER_ID}
+  redirect-url: ${REDIRECT_URL}

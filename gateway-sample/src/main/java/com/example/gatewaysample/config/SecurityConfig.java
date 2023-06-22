@@ -1,5 +1,6 @@
 package com.example.gatewaysample.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 
@@ -17,6 +19,11 @@ import reactor.core.publisher.Mono;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    @Value("${authentication.path}")
+    private String authenticationPath;
+
+    private final WebClient webClient = WebClient.create();
 
     @Bean
     SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http)
@@ -36,16 +43,25 @@ public class SecurityConfig {
         String method = exchange.getRequest().getMethod().toString();
         String token = exchange.getRequest().getHeaders().getFirst("Authorization");
 
-        // "/authentication-service/jwt"は認証前のため許可
         // "*/actuator/refresh"はconfigのrefresh用に許可
         // methodが"OPTIONS"の場合は許可(カスタムヘッダーが含まれないため)
-        if ((path.equals("/authentication-service/jwt") || path.endsWith("/actuator/refresh")
-                || method.equals("OPTIONS"))
-                || (token != null && !(token.contains("null")))) {
+        if (path.endsWith("/actuator/refresh") || method.equals("OPTIONS")) {
             return chain.filter(exchange);
         }
-        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        return exchange.getResponse().setComplete();
+
+        Mono<String> res = webClient.get().uri(authenticationPath).header("Authorization", token)
+                .retrieve()
+                .bodyToMono(String.class);
+
+        return res.flatMap(userInfo -> {
+            if (userInfo != null && !(userInfo.equals("invalid"))) {
+                return chain.filter(exchange);
+            } else {
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
+            }
+        });
+
     }
 
 }

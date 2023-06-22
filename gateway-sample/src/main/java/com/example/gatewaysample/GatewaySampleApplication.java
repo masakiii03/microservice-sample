@@ -9,10 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @RestController
 @RefreshScope
+@EnableFeignClients
 public class GatewaySampleApplication {
 
 	public static void main(String[] args) {

@@ -2,6 +2,7 @@ package com.example.client2.config;
 
 import java.util.function.Supplier;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authorization.AuthorizationDecision;
@@ -15,10 +16,15 @@ import org.springframework.security.web.access.intercept.RequestAuthorizationCon
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.example.client2.client.AuthenticationFeignClient;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private AuthenticationFeignClient authenticationFeignClient;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,9 +44,12 @@ public class SecurityConfig {
                     public AuthorizationDecision check(Supplier<Authentication> authorization,
                             RequestAuthorizationContext object) {
                         String token = object.getRequest().getHeader("Authorization");
-                        if (!token.contains("null")) {
+                        String res = authenticationFeignClient.getAuthentication(token);
+
+                        if (res != null && !(res.equals("invalid"))) {
                             return new AuthorizationDecision(true);
                         }
+
                         return new AuthorizationDecision(false);
                     }
                 })
