@@ -26,8 +26,7 @@ public class SecurityConfig {
     private final WebClient webClient = WebClient.create();
 
     @Bean
-    SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http)
-            throws Exception {
+    SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
 
         http.csrf().disable()
                 .authorizeExchange()
@@ -47,6 +46,9 @@ public class SecurityConfig {
         // methodが"OPTIONS"の場合は許可(カスタムヘッダーが含まれないため)
         if (path.endsWith("/actuator/refresh") || method.equals("OPTIONS")) {
             return chain.filter(exchange);
+        } else if (token == null) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
         }
 
         Mono<String> res = webClient.get().uri(authenticationPath).header("Authorization", token)
