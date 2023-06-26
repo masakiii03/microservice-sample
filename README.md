@@ -49,6 +49,9 @@
 
 - Eureka Server
   - サービスディスカバリー
+- authentication-service
+  - Github OAuth を使った認証・認可をおこなう
+  - gateway, client-1 ~ 4へのアクセス時にSpring Securityでアクセストークンを認証する
 - gateway
   - パスによって`client-1`, `client-3`にルーティングを振り分け
 - client-1
@@ -65,6 +68,8 @@
   - 設定ファイルを管理するconfigサーバー
 - [config-repo](https://github.com/masakiii03/config-repo)(別リポジトリ)
   - 設定ファイルの一元管理
+- フロントエンド
+  - [microservice-frontend-sample](https://github.com/masakiii03/microservice-frontend-sample)(別リポジトリ)
 
 ## アクセス方法
 ### 通常系
