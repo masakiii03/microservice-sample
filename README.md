@@ -51,7 +51,7 @@
   - サービスディスカバリー
 - authentication-service
   - Github OAuth を使った認証・認可をおこなう
-  - gateway, client-1 ~ 4へのアクセス時にSpring Securityで認証するJWTを発行する
+  - gateway, client-1 ~ 4へのアクセス時にSpring Securityでアクセストークンを認証する
 - gateway
   - パスによって`client-1`, `client-3`にルーティングを振り分け
 - client-1
