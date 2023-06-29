@@ -37,7 +37,7 @@ public class AuthenticationService {
 
         Map<String, String> res = restTemplate.postForObject(url, null, Map.class);
 
-        return (res != null && res.get("access_token") != null) ? "Bearer " + res.get("access_token") : "error";
+        return (res != null && res.get("access_token") != null) ? res.get("access_token") : "error";
 
     }
 
@@ -45,7 +45,7 @@ public class AuthenticationService {
      * アクセストークンが有効かGithubに問い合わせる
      * 
      * @param accessToken
-     * @return
+     * @return ユーザー情報 or "invalid"
      */
     public String checkAccessToken(String accessToken) {
 

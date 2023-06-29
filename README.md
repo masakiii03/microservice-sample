@@ -71,7 +71,7 @@
 - フロントエンド
   - [microservice-frontend-sample](https://github.com/masakiii03/microservice-frontend-sample)(別リポジトリ)
 
-## 認可フロー
+## 認可コードフロー
 ![microservice-sequence](./microservice-sequence.svg)
 
 ## アクセス方法
