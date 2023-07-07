@@ -1,5 +1,6 @@
 package com.example.gatewaysample.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +24,8 @@ public class SecurityConfig {
     @Value("${authentication.path}")
     private String authenticationPath;
 
-    private final WebClient webClient = WebClient.create();
+    @Autowired
+    private WebClient webClient;
 
     @Bean
     SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
