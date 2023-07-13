@@ -1,6 +1,10 @@
 # microservice-sample
 このリポジトリはSpringCloudのコンポーネントで構成されるマイクロサービスのサンプルです。
 
+[microservice-frontend-sample](https://github.com/masakiii03/microservice-frontend-sample)(別リポジトリ)から呼び出すことを前提としています。
+
+security面はGithub Oauth を利用した認可コードフローで認可を行っています。そのため、事前にGithub OAuthの作成も必要です。
+
 ## コンポーネント
 
 ### Eureka
@@ -14,6 +18,7 @@
 
 ### Spring Cloud OpenFeign
 - RESTful API を使用するためのサービスで宣言的RESTクライアント
+- サービスディスカバリに登録されているサービス名を指定することで、サービス間呼出しが実現可能
 - Spring MVCと同じアノテーションが利用できる(`@RequestMapping`, `@GetMapping`)
 
 ### Spring Cloud Load Balancer
@@ -43,6 +48,36 @@
 - `@Value`
   - refreshをしても設定値はリロードされない
   - クラスに`@RefreshScope`アノテーションを付与するとrefresh時に設定値がリロードされる
+
+### Spring Security
+- Spring ベースのアプリケーションを保護する標準フレームワーク
+- 認証認可、アクセス制御が可能
+
+### Micrometer × Zipkin
+- 分散トレーシング
+- 一つのトランザクションで複数マイクロサービスを跨ぐ場合に、サービスごとのパフォーマンスの確認やボトルネックを発見できる
+
+- Micrometer
+  - アプリのメトリクス収集ライブラリ
+  - レスポンス時間、エラー、リクエスト数などを収集する
+- Zipkin
+  - 分散トレーシングシステムの一つ
+  - 実装(コーディング)は不要で、設定追加のみでトレーシングをおこなえる
+  - マイクロサービス間のリクエストフローを視覚化してそれぞれのサービスでの処理時間を把握できる
+  - 以下で構成されている
+    - トレーシングをおこなうトレーサー
+    - トレース結果を確認するZipkinサーバー
+  - 本来、トレースデータをDBに保存する必要があるが、テスト用にメモリ上にトレースデータを保存できる
+
+必要な依存関係
+- io.zipkin.reporter2:zipkin-reporter-brave
+  - リクエストが発生した際にトレースや処理時間を収集する
+- io.micrometer:micrometer-tracing-bridge-brave
+  - `micrometer-tracing-bridge-brave`で収集した情報をZipkinに送信する
+- io.github.openfeign:feign-micrometer
+  - `MicrometerCapability`のBean作成に必要
+  - `MicrometerCapability`のBeanはOpenFeignでのリクエストをMicrometerでモニタリングするために必要。
+  このBeanがないとSpanIdごとに新しくTraceIdが生成されてしまう
 
 ## システム構成
 ![microservice](./microservice.drawio.svg)
@@ -74,20 +109,29 @@
 ## 認可コードフロー
 ![microservice-sequence](./microservice-sequence.svg)
 
-## アクセス方法
-### 通常系
-- http://localhost:8080/sample/0
-- http://localhost:8080/sample/0
 
-### 異常系(サーキットブレーカーのタイムアウト発生)
-- http://localhost:8080/sample/6
-- http://localhost:8080/sample/6
+## 利用方法
+### 起動
+- Github OAuth を作成して、`client_id`と`client_secret`を取得
+- 取得したGithub OAuth の情報から`microservice-sample/authentication-service/src/main/resources/application.yml`, `microservice-frontend-sample/src/Login.jsx`ファイルの環境変数を指定
+- サービス起動(`config-server` → `eureka-server` → その他サービスの順)
+  - Eurekaサーバーとclient-1 ~ 4は各`application.yml`のポートを変えて起動すればサービスの冗長化が可能
+- 分散トレーシングを確認する場合
+  - 以下コマンドを使ってdockerでZipkinを起動
+    - `docker run -p 9411:9411 openzipkin/zipkin:latest`
+- フロントエンド起動
+  - [microservice-frontend-sample](https://github.com/masakiii03/microservice-frontend-sample)
 
-### config設定の確認
-- http://localhost:8888/{サービス名}/default
+### サービスディスカバリ
+以下アクセスで確認
+- http://localhost:8761
+- http://localhost:8762
 
-### config設定のrefresh
-- http://localhost:{対象サービスのポート番号}/actuator/refresh (POST)
+### config-server
+- config設定の確認
+  - http://localhost:8888/{サービス名}/default
+- config設定のrefresh
+  - http://localhost:{対象サービスのポート番号}/actuator/refresh (POST)
 
-### config設定のrefreshの動作確認
-- http://localhost:8080/value
+### Zipkin
+- http://localhost:9411
