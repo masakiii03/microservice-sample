@@ -5,6 +5,8 @@ spring:
     import: optional:configserver:http://localhost:8888
 
 github-oauth:
-  client-id: ${CLIENT_ID}
-  client-secret: ${CLIENT_SECRET}
-  redirect-url: ${REDIRECT_URL}
+  # client-id: ${CLIENT_ID}
+  # client-secret: ${CLIENT_SECRET}
+  redirect-url: http://localhost:3000/redirect
+  client-id: e0670c2e486cb896fdd3
+  client-secret: 58f4157f83023f3541e91debec287ccc517dbf28
