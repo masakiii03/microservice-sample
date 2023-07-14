@@ -49,6 +49,13 @@ security面はGithub Oauth を利用した認可コードフローで認可を�
   - refreshをしても設定値はリロードされない
   - クラスに`@RefreshScope`アノテーションを付与するとrefresh時に設定値がリロードされる
 
+### Spring Cloud Bus × RabbitMQ
+各サービスのプロパティを一括refreshする仕組み
+- Spring Cloud Bus
+  - メッセージングサービス(AMQP)を利用してアプリ内に情報を配信できる
+- RabbitMQ
+  - メッセージキューを利用してアプリ間の非同期通信をおこなう仕組み
+
 ### Spring Security
 - Spring ベースのアプリケーションを保護する標準フレームワーク
 - 認証認可、アクセス制御が可能
@@ -119,6 +126,9 @@ security面はGithub Oauth を利用した認可コードフローで認可を�
 - 分散トレーシングを確認する場合
   - 以下コマンドを使ってdockerでZipkinを起動
     - `docker run -p 9411:9411 openzipkin/zipkin:latest`
+- プロパティを一括refreshする場合
+  - 以下コマンドを使ってdockerでRabbitMQを起動
+    - `docker run -d --hostname my-rabbit --name some-rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3-management`
 - フロントエンド起動
   - [microservice-frontend-sample](https://github.com/masakiii03/microservice-frontend-sample)
 
@@ -132,6 +142,9 @@ security面はGithub Oauth を利用した認可コードフローで認可を�
   - http://localhost:8888/{サービス名}/default
 - config設定のrefresh
   - http://localhost:{対象サービスのポート番号}/actuator/refresh (POST)
+
+### プロパティの一括refresh
+- http://localhost:8080/actuator/busrefresh (POST)
 
 ### Zipkin
 - http://localhost:9411

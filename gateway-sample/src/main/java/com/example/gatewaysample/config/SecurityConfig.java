@@ -46,7 +46,8 @@ public class SecurityConfig {
 
         // "*/actuator/refresh"はconfigのrefresh用に許可
         // methodが"OPTIONS"の場合は許可(カスタムヘッダーが含まれないため)
-        if (path.endsWith("/actuator/refresh") || method.equals("OPTIONS")) {
+        if (path.endsWith("/actuator/refresh") ||
+                path.endsWith("/actuator/busrefresh") || method.equals("OPTIONS")) {
             return chain.filter(exchange);
         } else if (token == null) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
