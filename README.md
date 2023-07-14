@@ -49,6 +49,18 @@ security面はGithub Oauth を利用した認可コードフローで認可を�
   - refreshをしても設定値はリロードされない
   - クラスに`@RefreshScope`アノテーションを付与するとrefresh時に設定値がリロードされる
 
+### Spring Cloud Bus × RabbitMQ
+各サービスのプロパティを一括refreshする仕組み
+- Spring Cloud Bus
+  - 複数アプリ間でのイベント通知とメッセージングをサポートするツール
+  - Spring Cloud Configと組み合わせて使用すると設定の変更をAMQPを介してイベントを送受信できる
+- RabbitMQ
+  - AMQPを使用してメッセージの送受信を接続する
+  - メッセージキューを利用してアプリ間の非同期通信をおこなう仕組み
+
+必要な依存関係
+- org.springframework.cloud:spring-cloud-starter-bus-amqp
+
 ### Spring Security
 - Spring ベースのアプリケーションを保護する標準フレームワーク
 - 認証認可、アクセス制御が可能
@@ -116,6 +128,9 @@ security面はGithub Oauth を利用した認可コードフローで認可を�
 - 取得したGithub OAuth の情報から`microservice-sample/authentication-service/src/main/resources/application.yml`, `microservice-frontend-sample/src/Login.jsx`ファイルの環境変数を指定
 - サービス起動(`config-server` → `eureka-server` → その他サービスの順)
   - Eurekaサーバーとclient-1 ~ 4は各`application.yml`のポートを変えて起動すればサービスの冗長化が可能
+- RabbitMQの起動
+  - 以下コマンドを使ってdockerでRabbitMQを起動
+    - `docker run -d --hostname my-rabbit --name some-rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3-management`
 - 分散トレーシングを確認する場合
   - 以下コマンドを使ってdockerでZipkinを起動
     - `docker run -p 9411:9411 openzipkin/zipkin:latest`
@@ -132,6 +147,9 @@ security面はGithub Oauth を利用した認可コードフローで認可を�
   - http://localhost:8888/{サービス名}/default
 - config設定のrefresh
   - http://localhost:{対象サービスのポート番号}/actuator/refresh (POST)
+
+### プロパティの一括refresh(Spring Cloud Bus × RabbitMQ)
+- http://localhost:8080/actuator/busrefresh (POST)
 
 ### Zipkin
 - http://localhost:9411

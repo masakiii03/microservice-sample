@@ -8,6 +8,11 @@ spring:
           uri: https://github.com/masakiii03/config-repo
           # username: ${USER_NAME}
           # password: ${PASSWORD}
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 
 eureka:
   client:
