@@ -4,6 +4,12 @@ spring:
   config:
     import: optional:configserver:http://localhost:8888
 
+eureka:
+  instance:
+    metadata-map:
+      version: 1
+      # version: 2
+
 server:
   port: 8002
   # port: 8022

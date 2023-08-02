@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.example.client3.config.FeignConfig;
+
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
-@FeignClient(name = "client-4")
+@FeignClient(name = "client-4", configuration = FeignConfig.class)
 public interface SampleFeignClient {
 
     Logger logger = LoggerFactory.getLogger(SampleFeignClient.class);
