@@ -8,7 +8,6 @@ import org.springframework.cloud.client.loadbalancer.DefaultResponse;
 import org.springframework.cloud.client.loadbalancer.Request;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.client.loadbalancer.RetryableRequestContext;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBalancer;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
@@ -23,10 +22,8 @@ import java.util.stream.Collectors;
 /**
  * カナリアリリースを実現するカスタムロードバランサー
  */
-@RefreshScope
 public class CustomLoadBalancer implements ReactorServiceInstanceLoadBalancer {
 
-    // TODO: spring-cloud-configのrefreshが有効になるよう実装
     @Value("${client-2.new-version-weight}")
     private int newVersionWeight;
 

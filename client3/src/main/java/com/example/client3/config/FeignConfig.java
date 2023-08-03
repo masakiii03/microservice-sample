@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import com.example.client3.loadbalancer.CustomLoadBalancer;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.loadbalancer.core.ReactorLoadBalancer;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 
@@ -19,6 +20,7 @@ public class FeignConfig {
     }
 
     @Bean
+    @RefreshScope
     public ReactorLoadBalancer<ServiceInstance> reactorServiceInstanceLoadBalancer() {
         return new CustomLoadBalancer(loadBalancerClientFactory);
     }
