@@ -43,6 +43,7 @@ public class CustomLoadBalancer implements ReactorServiceInstanceLoadBalancer {
     @Override
     public Mono<Response<ServiceInstance>> choose(Request request) {
         List<ServiceInstance> instances = discoveryClient.getInstances(serviceName);
+
         // インスタンスを選択
         ServiceInstance instance = getClient1Instance(instances);
 

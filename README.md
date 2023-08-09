@@ -3,9 +3,9 @@
 
 [microservice-frontend-sample](https://github.com/masakiii03/microservice-frontend-sample)(別リポジトリ)から呼び出すことを前提としています。
 
-security面はGithub Oauth を利用した認可コードフローで認可を行っています。そのため、事前にGithub OAuthの作成も必要です。
+security面はGithub OAuth を利用した認可コードフローで認可を行っています。そのため、事前にGithub OAuthの作成も必要です。
 
-## コンポーネント
+## 使用コンポーネントと概要
 
 ### Eureka
 - サービスディスカバリ
@@ -91,6 +91,21 @@ security面はGithub Oauth を利用した認可コードフローで認可を�
   - `MicrometerCapability`のBeanはOpenFeignでのリクエストをMicrometerでモニタリングするために必要。
   このBeanがないとSpanIdごとに新しくTraceIdが生成されてしまう
 
+## その他機能
+
+### カナリアリリース
+一部のサービスでカナリアリリースの仕組みを実装しています。
+
+実装箇所
+- client-2, client-4
+  - `client-2`, `client-4`起動時にmetadata.versionをEurekaに登録する
+  - `client-2`, `client-4`を呼び出す`client-1`, `client-3`でカスタムロードバランサーを実装
+  - [config-repo](https://github.com/masakiii03/config-repo)の設定ファイルにある`new-version-weight`を変更してrefreshすることで、weightを変更できる
+- client-1
+  - `client-1`起動時にmetadata.versionをEurekaに登録する
+  - `client-1`を呼び出す`gateway-service`でカスタムロードバランサーを実装
+  - [config-repo](https://github.com/masakiii03/config-repo)の設定ファイルにある`new-version-weight`を変更してrefreshすることで、weightを変更できる
+
 ## システム構成
 ![microservice](./microservice.drawio.svg)
 
@@ -101,6 +116,7 @@ security面はGithub Oauth を利用した認可コードフローで認可を�
   - gateway, client-1 ~ 4へのアクセス時にSpring Securityでアクセストークンを認証する
 - gateway
   - パスによって`client-1`, `client-3`にルーティングを振り分け
+  - 通常のルーティングでなく`client-1`向けのカナリア時は、`/service/client-1/**`のパスでアクセスをする
 - client-1
   - OpenFeign経由で`client-2`のメソッドを呼び出す
   - `client-2`呼び出し処理でサーキットブレーカーを実装
@@ -123,7 +139,7 @@ security面はGithub Oauth を利用した認可コードフローで認可を�
 
 
 ## 利用方法
-### 起動
+### 利用手順
 - Github OAuth を作成して、`client_id`と`client_secret`を取得
 - 取得したGithub OAuth の情報から`microservice-sample/authentication-service/src/main/resources/application.yml`, `microservice-frontend-sample/src/Login.jsx`ファイルの環境変数を指定
 - サービス起動(`config-server` → `eureka-server` → その他サービスの順)
