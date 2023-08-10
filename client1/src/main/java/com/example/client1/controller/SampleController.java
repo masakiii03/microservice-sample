@@ -1,5 +1,7 @@
 package com.example.client1.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -26,6 +28,8 @@ public class SampleController {
     @Autowired
     private SampleFeignClient sampleFeignClient;
 
+    private Logger logger = LoggerFactory.getLogger(SampleController.class);
+
     @GetMapping("/sample/{second}")
     public String getClient2(@RequestHeader("Authorization") String authorization, @PathVariable int second) {
         return sampleFeignClient.getClient2Port(authorization, port, second);
@@ -34,7 +38,8 @@ public class SampleController {
     @GetMapping("/value")
     @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<String> getValue() {
-        return new ResponseEntity<>(value, HttpStatus.OK);
+        logger.info("[client-1] getValue() called.");
+        return new ResponseEntity<>(value + "(" + port + ")", HttpStatus.OK);
     }
 
 }
