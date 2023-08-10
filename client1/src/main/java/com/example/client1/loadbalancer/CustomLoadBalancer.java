@@ -52,8 +52,6 @@ public class CustomLoadBalancer implements ReactorServiceInstanceLoadBalancer {
     @Override
     public Mono<Response<ServiceInstance>> choose(Request request) {
 
-        logger.info("newVersionWeight: {}", newVersionWeight);
-
         RetryableRequestContext o = (RetryableRequestContext) request.getContext();
         String host = o.getClientRequest().getUrl().getHost();
 
@@ -78,6 +76,8 @@ public class CustomLoadBalancer implements ReactorServiceInstanceLoadBalancer {
      * @return client-2のインスタンス
      */
     private ServiceInstance getClient2Instance(List<ServiceInstance> instances) {
+
+        logger.info("newVersionWeight: {}", newVersionWeight);
 
         instances.forEach(instance -> logger.info("metadata: {}", instance.getMetadata()));
 
