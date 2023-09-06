@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.client2.mapper.AccountMapper">
+    <select id="searchAccounts" resultType="com.example.client2.entity.AccountEntity">
+      SELECT * FROM ACCOUNT;
+    </select>
+
+    <select id="searchBalance" resultType="Integer" parameterType="Integer">
+        SELECT balance
+        FROM ACCOUNT
+        WHERE account_id = #{accountId}
+    </select>
+
+    <select id="searchReservedBalance" resultType="Integer" parameterType="Integer">
+        SELECT reserved_balance
+        FROM ACCOUNT
+        WHERE account_id = #{accountId}
+    </select>
+
+    <update id="tryUpdateAccount" parameterType="com.example.client2.parameter.UpdateAccountParameter">
+        UPDATE ACCOUNT
+        SET reserved_balance = #{param.payAmount}
+        WHERE account_id = #{param.accountId}
+    </update>
+
+    <update id="confirmUpdateAccount" parameterType="com.example.client2.parameter.UpdateAccountParameter">
+        UPDATE ACCOUNT
+        SET reserved_balance = 0, balance = balance - #{param.payAmount}
+        WHERE account_id = #{param.accountId}
+            AND balance - #{param.payAmount} >= 0;
+    </update>
+
+    <update id="cancelUpdateAccount" parameterType="com.example.client2.parameter.UpdateAccountParameter">
+        UPDATE ACCOUNT
+        SET reserved_balance = 0
+        WHERE account_id = #{param.accountId}
+    </update>
+
+    <update id="rollbackUpdateAccount" parameterType="com.example.client2.parameter.UpdateAccountParameter">
+        UPDATE ACCOUNT
+        SET balance = balance + #{param.payAmount}
+        WHERE account_id = #{param.accountId}
+    </update>
+</mapper>

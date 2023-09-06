@@ -3,6 +3,29 @@ spring:
     name: client-2
   config:
     import: optional:configserver:http://localhost:8888
+  datasource:
+    url: jdbc:h2:mem:account;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
+    dynamic:
+      seata: true
+  sql:
+    init:
+      enabled: true
+      schema-locations: classpath:init_data.sql
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+mybatis-plus:
+  mapper-locations: classpath:/mapper/**/*.xml
+  type-aliases-package: com.example.entity
+  configuration:
+    map-underscore-to-camel-case: true
 
 eureka:
   instance:

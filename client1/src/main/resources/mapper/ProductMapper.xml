@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.client1.mapper.ProductMapper">
+    <select id="searchProducts" resultType="com.example.client1.entity.ProductEntity">
+        SELECT * FROM PRODUCT;
+    </select>
+
+    <select id="searchQuantity" resultType="Integer" parameterType="Integer">
+        SELECT quantity
+        FROM PRODUCT
+        WHERE product_id = #{productId}
+    </select>
+
+    <select id="searchReservedQuantity" resultType="Integer" parameterType="Integer">
+        SELECT reserved_quantity
+        FROM PRODUCT
+        WHERE product_id = #{productId}
+    </select>
+
+    <select id="searchPrice" resultType="Integer" parameterType="Integer">
+        SELECT price
+        FROM PRODUCT
+        WHERE product_id = #{productId}
+    </select>
+
+    <update id="tryUpdateProduct" parameterType="com.example.client1.parameter.BuyProductParameter">
+        UPDATE PRODUCT
+        SET reserved_quantity = #{param.quantity}
+        WHERE product_id = #{param.productId}
+    </update>
+
+    <update id="confirmUpdateProduct" parameterType="com.example.client1.parameter.BuyProductParameter">
+        UPDATE PRODUCT
+        SET reserved_quantity = 0, quantity = quantity - #{param.quantity}
+        WHERE product_id = #{param.productId}
+            AND quantity - #{param.quantity} >= 0;
+    </update>
+
+    <update id="cancelUpdateProduct" parameterType="com.example.client1.parameter.BuyProductParameter">
+        UPDATE PRODUCT
+        SET reserved_quantity = 0
+        WHERE product_id = #{param.productId}
+    </update>
+
+    <update id="rollbackUpdateProduct" parameterType="com.example.client1.parameter.BuyProductParameter">
+        UPDATE PRODUCT
+        SET quantity = quantity + #{param.quantity}
+        WHERE product_id = #{param.productId}
+    </update>
+</mapper>
