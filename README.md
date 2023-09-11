@@ -106,6 +106,32 @@ security面はGithub OAuth を利用した認可コードフローで認可を�
   - `client-1`を呼び出す`gateway-service`でカスタムロードバランサーを実装
   - [config-repo](https://github.com/masakiii03/config-repo)の設定ファイルにある`new-version-weight`を変更してrefreshすることで、weightを変更できる
 
+### 分散トランザクション
+一部のサービスでTCCパターンの分散トランザクションを実装しています。
+
+実装内容
+- `client-1`にプロダクト情報のDB、`client-2`に口座情報のDBを作成
+- プロダクト購入処理を実装
+- tryフェーズ
+  - `client-1`のtryフェーズ
+    - プロダクトの在庫確認
+    - `reservedQuantity`に購入予定数を登録
+  - `client-2`のtryフェーズ
+    - 口座の残高を確認
+    - `reservedBalance`に購入予定金額を登録
+- confirmフェーズ
+  - `client-1`のconfirmフェーズ
+    - `reservedQuantity`を'0'にして、`quantity`から購入予定数を引いて登録
+  - `client-2`のconfirmフェーズ
+    - `reservedBalance`を'0'にして、`balance`から購入予定金額を引いて登録
+- cancelフェーズ
+  - `client-1`のcancelフェーズ
+    - confirm前の場合、`reservedQuantity`を'0'に戻す
+    - confirm後の場合、`quantity`を元に戻す
+  - `client-2`のcancelフェーズ
+    - confirm前の場合、`reservedBalance`を'0'に戻す
+    - confirm後の場合、`balance`を元に戻す
+
 ## システム構成
 ![microservice](./microservice.drawio.svg)
 
