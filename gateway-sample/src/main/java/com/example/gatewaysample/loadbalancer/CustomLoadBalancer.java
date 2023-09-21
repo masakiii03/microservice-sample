@@ -11,53 +11,64 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.loadbalancer.DefaultRequestContext;
 import org.springframework.cloud.client.loadbalancer.DefaultResponse;
 import org.springframework.cloud.client.loadbalancer.Request;
+import org.springframework.cloud.client.loadbalancer.RequestData;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBalancer;
+import org.springframework.http.HttpHeaders;
 
 import reactor.core.publisher.Mono;
 
 /**
- * カナリアリリースを実現するロードバランサー
+ * カナリアリリースを実現するカスタムロードバランサー
  */
 public class CustomLoadBalancer implements ReactorServiceInstanceLoadBalancer {
 
     private Logger logger = LoggerFactory.getLogger(CustomLoadBalancer.class);
 
-    @Value("${client-1.new-version-weight}")
+    // サービス問わずに新バージョンのweightの設定
+    @Value("${gw.new-version-weight}")
     private int newVersionWeight;
 
     private DiscoveryClient discoveryClient;
 
-    private String serviceName;
-
     private Random random;
 
-    public CustomLoadBalancer(DiscoveryClient discoveryClient, String serviceName) {
+    public CustomLoadBalancer(DiscoveryClient discoveryClient) {
         this.discoveryClient = discoveryClient;
-        this.serviceName = serviceName;
         this.random = new Random();
     }
 
     @Override
     public Mono<Response<ServiceInstance>> choose(Request request) {
+
+        // リクエストヘッダーからServiceNameを取得
+        DefaultRequestContext rc = (DefaultRequestContext) request.getContext();
+        RequestData rd = (RequestData) rc.getClientRequest();
+        HttpHeaders headers = rd.getHeaders();
+        String serviceName = headers.get("ServiceName").get(0);
+
+        logger.info("target ServiceName: {}", serviceName);
+
+        // サービス名から全てのインスタンスを取得
         List<ServiceInstance> instances = discoveryClient.getInstances(serviceName);
 
-        // インスタンスを選択
-        ServiceInstance instance = getClient1Instance(instances);
+        // ルーティングするインスタンスを取得
+        ServiceInstance instance = getTargetInstance(instances);
 
         Response<ServiceInstance> response = new DefaultResponse(instance);
         return Mono.just(response);
     }
 
     /**
-     * client-1のインスタンスを取得metadata.versionとweightによるcanary対応)
+     * ルーティングするインスタンスを取得(metadata.versionとweightによるcanary対応)
      * 
-     * @param instances client-1のインスタンスリスト
-     * @return client-1のターゲットインスタンス
+     * @param instances インスタンスリスト
+     * @return ターゲットインスタンス
      */
-    private ServiceInstance getClient1Instance(List<ServiceInstance> instances) {
+    private ServiceInstance getTargetInstance(List<ServiceInstance> instances) {
 
         logger.info("newVersionWeight: {}", newVersionWeight);
         instances.forEach(instance -> logger.info("metadata: {}", instance.getMetadata()));

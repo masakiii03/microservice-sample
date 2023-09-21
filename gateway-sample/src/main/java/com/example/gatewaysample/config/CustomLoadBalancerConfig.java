@@ -13,13 +13,13 @@ import com.example.gatewaysample.loadbalancer.CustomLoadBalancer;
 
 @Configuration
 @LoadBalancerClients({
-        @LoadBalancerClient(name = "client-1", configuration = CustomLoadBalancerConfig.class)
+        @LoadBalancerClient(name = "CustomLB", configuration = CustomLoadBalancerConfig.class)
 })
 public class CustomLoadBalancerConfig {
 
     @Bean
     @RefreshScope
     public ReactorLoadBalancer<ServiceInstance> reactorLoadBalancer(DiscoveryClient discoveryClient) {
-        return new CustomLoadBalancer(discoveryClient, "client-1");
+        return new CustomLoadBalancer(discoveryClient);
     }
 }

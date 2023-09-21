@@ -1,5 +1,5 @@
 # microservice-sample
-このリポジトリはSpringCloudのコンポーネントで構成されるマイクロサービスのサンプルです。
+このリポジトリはSpringCloudのコンポーネントを中心に構成されるマイクロサービスのサンプルです。
 
 [microservice-frontend-sample](https://github.com/masakiii03/microservice-frontend-sample)(別リポジトリ)から呼び出すことを前提としています。
 
@@ -23,6 +23,7 @@ security面はGithub OAuth を利用した認可コードフローで認可を�
 
 ### Spring Cloud Load Balancer
 - 負荷分散
+- カスタムロードバランサーを実装することでルーティングを制御できる(カナリアリリース)
 
 ### Resilience4j
 - サーキットブレーカー
@@ -58,9 +59,6 @@ security面はGithub OAuth を利用した認可コードフローで認可を�
   - AMQPを使用してメッセージの送受信を接続する
   - メッセージキューを利用してアプリ間の非同期通信をおこなう仕組み
 
-必要な依存関係
-- org.springframework.cloud:spring-cloud-starter-bus-amqp
-
 ### Spring Security
 - Spring ベースのアプリケーションを保護する標準フレームワーク
 - 認証認可、アクセス制御が可能
@@ -94,17 +92,20 @@ security面はGithub OAuth を利用した認可コードフローで認可を�
 ## その他機能
 
 ### カナリアリリース
-一部のサービスでカナリアリリースの仕組みを実装しています。
+gatewayでカナリアリリースの仕組みを実装しています。
 
-実装箇所
-- client-2, client-4
-  - `client-2`, `client-4`起動時にmetadata.versionをEurekaに登録する
-  - `client-2`, `client-4`を呼び出す`client-1`, `client-3`でカスタムロードバランサーを実装
-  - [config-repo](https://github.com/masakiii03/config-repo)の設定ファイルにある`new-version-weight`を変更してrefreshすることで、weightを変更できる
-- client-1
-  - `client-1`起動時にmetadata.versionをEurekaに登録する
-  - `client-1`を呼び出す`gateway-service`でカスタムロードバランサーを実装
-  - [config-repo](https://github.com/masakiii03/config-repo)の設定ファイルにある`new-version-weight`を変更してrefreshすることで、weightを変更できる
+実装内容
+- gateway
+  - configで新バージョンのweightを設定(`new-version-weight`)
+  - Spring CLoud LoadBalancer でカスタムロードバランサーを作成
+    - weightをかけてサービスにルーティングさせる
+  - [config-repo](https://github.com/masakiii03/config-repo)の設定ファイルにある`new-version-weight`を変更してrefreshすることで、weightを変更可能
+- gatewayからルーティングされるサービス
+  - configで`metadata-map.version`を設定、Eurekaに登録
+  - Spring CLoud LoadBalancer でカスタムロードバランサーを作成
+    - サービス間通信時は自サービスと同バージョンの他サービスを呼び出すよう実装
+- 他サービス
+  - configで`metadata-map.version`を設定、Eurekaに登録
 
 ### 分散トランザクション
 一部のサービスでTCCパターンの分散トランザクションを実装しています。
@@ -142,7 +143,6 @@ security面はGithub OAuth を利用した認可コードフローで認可を�
   - gateway, client-1 ~ 4へのアクセス時にSpring Securityでアクセストークンを認証する
 - gateway
   - パスによって`client-1`, `client-3`にルーティングを振り分け
-  - 通常のルーティングでなく`client-1`向けのカナリア時は、`/service/client-1/**`のパスでアクセスをする
 - client-1
   - OpenFeign経由で`client-2`のメソッドを呼び出す
   - `client-2`呼び出し処理でサーキットブレーカーを実装
@@ -169,7 +169,8 @@ security面はGithub OAuth を利用した認可コードフローで認可を�
 - Github OAuth を作成して、`client_id`と`client_secret`を取得
 - 取得したGithub OAuth の情報から`microservice-sample/authentication-service/src/main/resources/application.yml`, `microservice-frontend-sample/src/Login.jsx`ファイルの環境変数を指定
 - サービス起動(`config-server` → `eureka-server` → その他サービスの順)
-  - Eurekaサーバーとclient-1 ~ 4は各`application.yml`のポートを変えて起動すればサービスの冗長化が可能
+  - Eurekaサーバーとclient-1 ~ 4 は各`application.yml`のポート番号を変えて起動すればサービスの冗長化が可能
+  - client-1 ~ 4 の起動時に`metadata-map.version`でバージョンを設定する
 - RabbitMQの起動
   - 以下コマンドを使ってdockerでRabbitMQを起動
     - `docker run -d --hostname my-rabbit --name some-rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3-management`
@@ -179,6 +180,7 @@ security面はGithub OAuth を利用した認可コードフローで認可を�
 - フロントエンド起動
   - [microservice-frontend-sample](https://github.com/masakiii03/microservice-frontend-sample)
 
+## ユースケース
 ### サービスディスカバリ
 以下アクセスで確認
 - http://localhost:8761
@@ -194,4 +196,72 @@ security面はGithub OAuth を利用した認可コードフローで認可を�
 - http://localhost:8080/actuator/busrefresh (POST)
 
 ### Zipkin
+以下アクセスで確認
 - http://localhost:9411
+
+### 各サービス
+- gateway
+  - http://localhost:8080/value
+    - configのvalueを取得
+      - refreshの動作確認が可能
+  - http://localhost:8080/client-1/sample/0
+    - client-2 を呼び出すclient-1 のメソッドを呼び出す
+      - gatewayのルーティングの動作確認が可能
+      - カナリアリリースの動作確認が可能
+  - http://localhost:8080/client-1/sample/6
+    - client-1 に実装しているサーキットブレーカーの動作確認が可能
+  - http://localhost:8080/client-3/sample/0
+    - client-4 を呼び出すclient-5 のメソッドを呼び出す
+      - gatewayのルーティングの動作確認が可能
+      - カナリアリリースの動作確認が可能
+  - http://localhost:8080/client-3/sample/6
+    - client-3 に実装しているサーキットブレーカーの動作確認が可能
+
+- client-1(port: 8001, 8011)
+  - http://localhost:8001/value
+    - configのvalueを取得
+      - refreshの動作確認が可能
+  - http://localhost:8001/sample/0
+    - client-2 を呼び出す
+  - http://localhost:8001/sample/6
+    - client-2 を呼び出す
+    - サーキットブレーカーの動作確認が可能
+    - pathの最後に指定する数の秒数後にレスポンスが返ってくる`client-2`のメソッドを呼び出す
+      - 5秒以上レスポンスが返ってこないときにサーキットブレーカーがOPENになる実装
+  - http://localhost:8001/products
+    - H2DBからプロダクト情報を検索する
+  - http://localhost:8001/products (POST)
+    - プロダクト購入処理
+      - 自サービスに紐づくDBからプロダクト情報を更新、client-2 を呼出して口座情報を更新
+    - 分散トランザクションの動作確認が可能
+
+- client-2(port: 8002, 8022) ※client-1からの呼出しを前提としています。
+  - http://localhost:8002/client-2/get_port/0
+    - 0秒後(path指定)に自サービスのポート番号と呼び出し元(client-1)のポート番号を表示する
+  - http://localhost:8002/client-2/accounts
+    - H2DBから口座情報を検索する
+  - http://localhost:8002/client-2/try_accounts (POST)
+    - 口座情報を更新する処理のtryフェーズ
+    - 分散トランザクションの動作確認が可能
+  - http://localhost:8002/client-2/confirm_accounts (POST)
+    - 口座情報を更新する処理のconfirmフェーズ
+    - 分散トランザクションの動作確認が可能
+  - http://localhost:8002/client-2/cancel_accounts (POST)
+    - 口座情報を更新する処理のcancelフェーズ
+    - 分散トランザクションの動作確認が可能
+
+- client-3(port: 8003, 8033)
+  - http://localhost:8003/value
+    - configのvalueを取得
+      - refreshの動作確認が可能
+  - http://localhost:8003/sample/0
+    - client-4 を呼び出す
+  - http://localhost:8003/sample/6
+    - client-4 を呼び出す
+    - サーキットブレーカーの動作確認が可能
+    - pathの最後に指定する数の秒数後にレスポンスが返ってくる`client-4`のメソッドを呼び出す
+      - 5秒以上レスポンスが返ってこないときにサーキットブレーカーがOPENになる実装
+
+- client-4(port: 8004, 8044) ※client-3からの呼出しを前提としています。
+  - http://localhost:8004/client-4/get_port/0
+    - 0秒後(path指定)に自サービスのポート番号と呼び出し元(client-3)のポート番号を表示する
