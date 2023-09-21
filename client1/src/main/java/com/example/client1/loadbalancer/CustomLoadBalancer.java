@@ -14,7 +14,6 @@ import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -24,8 +23,8 @@ import java.util.stream.Collectors;
  */
 public class CustomLoadBalancer implements ReactorServiceInstanceLoadBalancer {
 
-    @Value("${client-2.new-version-weight}")
-    private int newVersionWeight;
+    @Value("${eureka.instance.metadata-map.version}")
+    private Integer selfVersion;
 
     private Random random;
 
@@ -76,27 +75,18 @@ public class CustomLoadBalancer implements ReactorServiceInstanceLoadBalancer {
      * @return client-2のインスタンス
      */
     private ServiceInstance getClient2Instance(List<ServiceInstance> instances) {
-
-        logger.info("newVersionWeight: {}", newVersionWeight);
+        
+        logger.info("selfVersion: {}", selfVersion);
 
         instances.forEach(instance -> logger.info("metadata: {}", instance.getMetadata()));
 
         // バージョン情報を取得
         List<Integer> versionList = new ArrayList<>();
         instances.forEach(instance -> versionList.add(Integer.parseInt(instance.getMetadata().get("version"))));
-        String currentVersion = Collections.min(versionList).toString();
-        String newVersion = Collections.max(versionList).toString();
-
-        logger.info("currentVersion: {}", currentVersion);
-        logger.info("newVersion: {}", newVersion);
-
-        int num = (int) (Math.random() * 100) + 1;
-        logger.info("num: {}", num);
-        logger.info(num <= newVersionWeight ? "call new version" : "call current version");
 
         List<ServiceInstance> targetInstances = instances.stream()
                 .filter(instance -> instance.getMetadata().get("version")
-                        .equals(num <= newVersionWeight ? newVersion : currentVersion))
+                        .equals(selfVersion.toString()))
                 .collect(Collectors.toList());
 
         return targetInstances.isEmpty() ? null : targetInstances.get(random.nextInt(targetInstances.size()));
